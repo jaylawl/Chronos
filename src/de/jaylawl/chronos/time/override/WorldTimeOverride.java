@@ -4,7 +4,6 @@ import de.jaylawl.chronos.Chronos;
 import de.jaylawl.chronos.util.InvalidBuilderException;
 import de.jaylawl.chronos.util.WorldAdapter;
 import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
@@ -17,15 +16,20 @@ import java.util.List;
 
 public abstract class WorldTimeOverride {
 
+    public static short MINECRAFT_DAYLIGHT_CYCLE_TICKS = 24000;
+
     public static class Builder {
 
         public WorldTimeOverrideType type = null;
         public String worldName = null;
 
-        // CustomTimePassage:
+        // CustomSpeed:
         public Integer ticksPerCycle = null;
 
-        // FrozenTime:
+        // Frozen:
+        public Integer freezeTime = null;
+
+        // SyncedRealTime
 
         public Builder() {
         }
@@ -49,6 +53,15 @@ public abstract class WorldTimeOverride {
                         }
                     }
                     case FROZEN -> {
+                        if (this.freezeTime == null) {
+                            problems.add("Freeze time must not be null");
+                        } else {
+                            InvalidBuilderException.validate(this.freezeTime >= 0, "Freeze time must be >= 0", problems);
+                            InvalidBuilderException.validate(this.freezeTime < WorldTimeOverride.MINECRAFT_DAYLIGHT_CYCLE_TICKS, "Freeze time must be < " + WorldTimeOverride.MINECRAFT_DAYLIGHT_CYCLE_TICKS, problems);
+                        }
+                    }
+                    case SYNCED_REAL_TIME -> {
+                        problems.add(this.type + " is not yet implemented");
                     }
                     default -> {
                         problems.add("Unhandled case of " + this.type.getClass().getSimpleName() + " in #build()");
@@ -56,14 +69,13 @@ public abstract class WorldTimeOverride {
                 }
             }
 
-            if (this.type != null) {
+            if (problems.isEmpty()) {
                 try {
                     return this.type.getClazz().getDeclaredConstructor(WorldTimeOverride.Builder.class).newInstance(this);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
                     problems.add(exception.getMessage());
                 }
             }
-
             throw new InvalidBuilderException("Unable to instantiate " + WorldTimeOverride.class.getSimpleName() + " from builder", problems);
         }
 
@@ -89,6 +101,10 @@ public abstract class WorldTimeOverride {
         return this.worldAdapter;
     }
 
+    public void worldLoadCheck() {
+        this.worldLoaded = this.worldAdapter.getWorld() != null;
+    }
+
     public boolean isWorldLoaded() {
         return this.worldLoaded;
     }
@@ -101,7 +117,7 @@ public abstract class WorldTimeOverride {
         new BukkitRunnable() {
             @Override
             public void run() {
-                WorldTimeOverride.this.worldLoaded = (Bukkit.getWorld(WorldTimeOverride.this.worldAdapter.worldName()) != null);
+                worldLoadCheck();
             }
         }.runTaskLater(Chronos.getInstance(), 1L);
     }
@@ -111,5 +127,7 @@ public abstract class WorldTimeOverride {
 
     public void onTimeSkip(@NotNull TimeSkipEvent event) {
     }
+
+    public abstract void applyToWorld();
 
 }

@@ -1,0 +1,19 @@
+main: de.jaylawl.chronos.Chronos
+name: Chronos
+version: 0.dev1
+author: jaylawl
+
+api-version: "1.17"
+load: POSTWORLD
+depend: [ ]
+softdepend: [ ]
+loadbefore: [ ]
+
+commands:
+
+  chronos:
+    aliases: [ ch ]
+    permission: "chronos.admin"
+    permission-message: "§cInsufficient permission"
+
+permissions: { }

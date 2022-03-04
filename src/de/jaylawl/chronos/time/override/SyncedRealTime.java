@@ -10,5 +10,8 @@ public class SyncedRealTime extends WorldTimeOverride {
 
     //
 
+    @Override
+    public void applyToWorld() {
+    }
 
 }

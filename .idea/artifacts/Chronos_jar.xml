@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Chronos:jar">
+    <output-path>$PROJECT_DIR$/../__builds</output-path>
+    <root id="archive" name="Chronos.jar">
+      <element id="module-output" name="Chronos" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/de/jaylawl/chronos/resources/plugin.yml" />
+    </root>
+  </artifact>
+</component>
